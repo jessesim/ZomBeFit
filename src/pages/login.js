@@ -60,7 +60,7 @@ function Login({ setUserData }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md dark:bg-gray-800 p-6 space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center">
+        <h2 className="animate-bounce text-2xl font-bold text-gray-900 dark:text-white text-center">
           Login to Your Account
         </h2>
         <form className="space-y-4" onSubmit={(e) => {

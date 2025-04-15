@@ -3,6 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @plugin "flowbite/plugin";
 
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
