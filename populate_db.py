@@ -1,4 +1,4 @@
-from api import app, db, NutritionLog
+from ZomBeFit.app import app, db, NutritionLog
 from datetime import datetime, timedelta
 
 def create_sample_data():

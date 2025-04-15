@@ -23,7 +23,7 @@
 }
 
 body {
-  background-image: url("/jr-korpa-_ZNLoTRTEKs-unsplash.jpg")!important;
+  background-image: url("/jr-korpa-_ZNLoTRTEKs-unsplash.jpg");
   background-size: cover; /* Ensures the image covers the entire screen */
   background-position: center; /* Centers the image */
   background-repeat: no-repeat; /* Prevents the image from repeating */

@@ -7,6 +7,8 @@ import APPLEPIE from "./pie"; // Import MacroChart
 import LineChart from "./linechart"; // Import LineChart
 import { johnWeeklyData } from "./placeholderData"; // Import placeholder data
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement);
 

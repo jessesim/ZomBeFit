@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion"; 
 
@@ -18,7 +18,7 @@ let holdTimeout; // Timeout to detect long press\
 // Function to fetch AI suggestions
 const fetchAiSuggestion = async () => {
 try {
-// Replace with your FastAPI backend URL
+
 const response = await axios.post("http://localhost:8000/api/ai/automatic", {
 protein: [100, 120, 110, 130],
 carbs: [200, 220, 210, 230],
@@ -72,7 +72,7 @@ funny: true, // Boolean value for humor
 
 // Fetch AI suggestions when the component mounts
 useEffect(() => {
- //fetchAiSuggestion();  //UNCOMMENT THIS LINE TO FETCH SUGGESTIONS FROM AI
+// fetchAiSuggestion();  //UNCOMMENT THIS LINE TO FETCH SUGGESTIONS FROM AI
 }, []);
 
 // Cleanup function to clear the timeout if the component unmounts

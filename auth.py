@@ -1,5 +1,5 @@
 #imports for the auth
-from flask import Blueprint, request, jsonify
+from flask import Flask, Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from datetime import datetime, timedelta
@@ -7,9 +7,14 @@ from functools import wraps
 from models import db, NutritionLog
 import os
 from dotenv import load_dotenv
+from flask_cors import CORS
+import uuid  # Add this import at the top of your file
 
 # Load environment variables
 load_dotenv()
+
+# Initialize Flask app
+app = Flask(__name__)
 
 # Create auth blueprint
 auth = Blueprint('auth', __name__)
@@ -22,65 +27,84 @@ def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
-        
+
         # Get token from Authorization header
         if 'Authorization' in request.headers:
+            print("Authorization Header:", request.headers['Authorization'])  # Debugging log
             token = request.headers['Authorization'].split(" ")[1]
-        #if the token is not found return a message
+
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
-        #try to decode the token
+
         try:
-            # Decode the token
             data = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
-            #get the user id from the token
             current_user = NutritionLog.query.filter_by(user_id=data['user_id']).first()
-            #if the user is not found return a message
             if not current_user:
                 return jsonify({'message': 'User not found!'}), 401
-            #if the token is invalid return a message
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Token has expired!'}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({'message': 'Invalid token!'}), 401
-        #return the decorated function
+        except jwt.InvalidTokenError as e:
+            return jsonify({'message': 'Invalid token!', 'error': str(e)}), 401
+
         return f(current_user, *args, **kwargs)
-    #return the decorated function
     return decorated
 
 #create a register route
 @auth.route('/register', methods=['POST'])
 def register():
-    #get the data from the request
-    data = request.get_json()
-    #check if the user already exists
+    data = request.get_json()  # Get the JSON data from the request
+    print("Received data:", data)  # Debugging log
+
+    # Validate required fields
+    required_fields = ['email', 'password', 'height', 'weight']
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({'message': f'{field} is required!'}), 400
+
+    # Check if the email is already registered
     if NutritionLog.query.filter_by(email=data['email']).first():
         return jsonify({'message': 'Email already registered!'}), 400
-    #check if the user id already exists
-    if NutritionLog.query.filter_by(user_id=data['user_id']).first():
-        return jsonify({'message': 'User ID already exists!'}), 400
-    #create a new user with the data        
+
+    # Generate a unique user_id
+    user_id = str(uuid.uuid4())
+
+    # Create a new user
     new_user = NutritionLog(
-        user_id=data['user_id'],
+        user_id=user_id,  # Generate a unique user_id
         email=data['email'],
         password=generate_password_hash(data['password']),
-        gender=data['gender'],
-        age=data['age'],
+        gender=data.get('gender'),  # Optional
+        age=data.get('age'),  # Optional
         weight=data['weight'],
         height=data['height'],
-        activity_level=data['activity_level'],
+        activity_level=data.get('activity_level'),  # Optional
         fat_logs=[],
         protein_logs=[],
         carbs_logs=[],
         cal_in_logs=[],
         cal_out_logs=[]
     )
-    #add the new user to the database
-    db.session.add(new_user)
-    #commit the changes to the database
-    db.session.commit()
-    #return a message
-    return jsonify({'message': 'User registered successfully!'}), 201
+
+    # Add the new user to the database
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+
+        # Generate a token for the new user
+        token = jwt.encode({
+            'user_id': user_id,
+            'exp': datetime.utcnow() + timedelta(days=1)
+        }, JWT_SECRET_KEY, algorithm="HS256")
+
+        return jsonify({
+            'message': 'User registered successfully!',
+            'user_id': user_id,
+            'token': token  # Include the token in the response
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        print("Error:", str(e))  # Debugging log
+        return jsonify({'message': 'Error registering user', 'error': str(e)}), 500
 
 #create a login route
 @auth.route('/login', methods=['POST'])
@@ -101,4 +125,6 @@ def login():
     return jsonify({
         'token': token,
         'user': user.to_dict()
-    }) 
+    })
+
+CORS(app)

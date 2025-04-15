@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { johnWeeklyData, sarahWeeklyData } from "./placeholderData";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 // This is a simple login form component using React and Next.js
 function Login({ setUserData }) {
   const [email, setEmail] = useState("");
@@ -10,18 +12,47 @@ function Login({ setUserData }) {
   const router = useRouter();
 
   // Handle login form submission
-  const handleLogin = (e) => {
-    e.preventDefault();
+  const handleLogin = async (formData) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-    // Validate login credentials
-    if (email === "john@test.com" && password === "password") {
-      setUserData(johnWeeklyData[0]); // Set John's data
-      router.push("/profile"); // Redirect to profile page
-    } else if (email === "sarah@test.com" && password === "password") {
-      setUserData(sarahWeeklyData[0]); // Set Sarah's data
-      router.push("/profile"); // Redirect to profile page
-    } else {
-      setError("Invalid email or password"); // Show error message
+      if (!response.ok) {
+        throw new Error("Login failed");
+      }
+
+      const data = await response.json();
+      localStorage.setItem("token", data.token); // Save the token in localStorage
+      localStorage.setItem("user_id", data.user_id); // Save the user ID if needed
+      router.push("/profile"); // Redirect to the profile page
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  const updateUserData = async (updatedData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:5000/logs/<user_id>", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedData),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update user data");
+      }
+      const data = await response.json();
+      console.log("User data updated:", data);
+    } catch (err) {
+      console.error(err.message);
     }
   };
 
@@ -32,7 +63,10 @@ function Login({ setUserData }) {
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center">
           Login to Your Account
         </h2>
-        <form className="space-y-4" onSubmit={handleLogin}>
+        <form className="space-y-4" onSubmit={(e) => {
+          e.preventDefault();
+          handleLogin({ email, password });
+        }}>
           {/* Email Input */}
           <div>
             <label

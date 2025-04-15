@@ -9,17 +9,17 @@ db = SQLAlchemy()
 #create the nutrition log model
 class NutritionLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(50), unique=True, nullable=False)
-    gender = db.Column(db.String(10), nullable=False)
-    age = db.Column(db.Float, nullable=False)
-    weight = db.Column(db.Float, nullable=False)
-    height = db.Column(db.Float, nullable=False)
-    activity_level = db.Column(db.String(20), nullable=False)
-    fat_logs = db.Column(db.JSON)
-    protein_logs = db.Column(db.JSON)
-    carbs_logs = db.Column(db.JSON)
-    cal_in_logs = db.Column(db.JSON)
-    cal_out_logs = db.Column(db.JSON)
+    user_id = db.Column(db.String(50), unique=True, nullable=False)  # Ensure user_id is not null
+    gender = db.Column(db.String(10), nullable=True)
+    age = db.Column(db.Float, nullable=True)
+    weight = db.Column(db.Float, nullable=True)
+    height = db.Column(db.Float, nullable=True)
+    activity_level = db.Column(db.String(20), nullable=True)
+    fat_logs = db.Column(db.JSON, nullable=True)
+    protein_logs = db.Column(db.JSON, nullable=True)
+    carbs_logs = db.Column(db.JSON, nullable=True)
+    cal_in_logs = db.Column(db.JSON, nullable=True)
+    cal_out_logs = db.Column(db.JSON, nullable=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
@@ -48,4 +48,4 @@ class NutritionLog(db.Model):
             'cal_out_logs': self.cal_out_logs,
             'date_created': self.date_created.isoformat() if self.date_created else None,
             'email': self.email
-        } 
+        }

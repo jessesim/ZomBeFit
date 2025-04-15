@@ -11,12 +11,18 @@ from algorithms import tdee
 from auth import auth, token_required
 from werkzeug.security import generate_password_hash
 from models import db, NutritionLog
+from flask_cors import CORS
+from flask_migrate import Migrate
+
 
 # Load environment variables
 load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Enable CORS for the Flask app
+CORS(app)
 
 # Register auth blueprint
 app.register_blueprint(auth, url_prefix='/auth')
@@ -27,6 +33,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize SQLAlchemy with the app
 db.init_app(app)
+migrate = Migrate(app, db)
 
 # Create database tables
 with app.app_context():

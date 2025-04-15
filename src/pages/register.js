@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+
 // This is a simple registration form component using React and Next.js
 function Register() {
   const router = useRouter();
@@ -21,6 +24,29 @@ function Register() {
     }));
   };
 
+  const handleRegistration = async (formData) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Registration failed");
+      }
+  
+      const data = await response.json();
+      localStorage.setItem("token", data.token); // Save the token in localStorage
+      localStorage.setItem("user_id", data.user_id); // Save the user ID if needed
+      router.push("/profile"); // Redirect to the profile page
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,24 +55,10 @@ function Register() {
       return;
     }
 
+    const { confirmPassword, ...payload } = formData;
+
     // Perform registration logic here (e.g., API call)
-    try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        router.push("/profile"); // Redirect to profile page on success
-      } else {
-        alert("Registration failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error during registration:", error);
-      alert("An error occurred. Please try again.");
-    }
+    handleRegistration(payload);
   };
 
   // Render the registration form

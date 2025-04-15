@@ -11,6 +11,8 @@ import {
   Label,
 } from "recharts";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 // Sample data for the chart
 const data = [
   { day: "Sunday", CaloriesIn: 2000, CaloriesOut: 1800 },

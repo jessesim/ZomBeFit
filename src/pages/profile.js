@@ -2,7 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import AiChat from "./aichat"; // Import AI suggestions component
 import Navbar from "./navbar"; // Import Navbar component
 
-function ProfilePage({ userData }) {
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+function ProfilePage() {
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   // Provide default values if userData or its properties are undefined
   const [currentGoal, setCurrentGoal] = useState(userData?.fitnessGoals?.currentGoal || "Maintain weight");
   const [targetWeight, setTargetWeight] = useState(userData?.fitnessGoals?.targetWeight || 0);
@@ -48,15 +53,57 @@ function ProfilePage({ userData }) {
     }
   }, [currentGoal, targetWeight, targetBodyFat, userData]);
 
-  // Check if userData is available, if not, show a message to log in
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("token"); // Get token from localStorage
+        if (!token) {
+          throw new Error("Token not found");
+        }
+
+        const response = await fetch(`${API_URL}/logs`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`, // Send the token in the Authorization header
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+
+        const data = await response.json();
+        setUserData(data);
+        setLoading(false);
+      } catch (err) {
+        console.error(err.message);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+
+    if (!userId || !token) {
+      router.push("/login"); // Redirect to login if data is missing
+    }
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
+
   if (!userData) {
-    return (
-      <div className="p-4 bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-          Please log in to view your profile.
-        </h1>
-      </div>
-    );
+    return <p>No user data available</p>;
   }
 
   // Render the profile page with user data and progress bars
@@ -73,20 +120,12 @@ function ProfilePage({ userData }) {
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             User Information
           </h2>
-          <p className="text-gray-700 dark:text-gray-300">Height: {userData.height || "N/A"} in</p>
-          <p className="text-gray-700 dark:text-gray-300">
-            Current Weight: {userData.weight || "N/A"} lb
-          </p>
-          <p className="text-gray-700 dark:text-gray-300">
-            Body Fat: {userData.bodyFat || "N/A"}%
-          </p>
-          <p className="text-gray-700 dark:text-gray-300">
-            Target Weight: {targetWeight} lb
-          </p>
-          <p className="text-gray-700 dark:text-gray-300">
-            Target Body Fat: {targetBodyFat}%
-          </p>
-          <p className="text-gray-700 dark:text-gray-300">Email: {userData.email}</p>
+          <p className="text-gray-700 dark:text-gray-300">Height: {userData?.height || "N/A"} in</p>
+          <p className="text-gray-700 dark:text-gray-300">Current Weight: {userData?.weight || "N/A"} lb</p>
+          <p className="text-gray-700 dark:text-gray-300">Body Fat: {userData?.bodyFat || "N/A"}%</p>
+          <p className="text-gray-700 dark:text-gray-300">Email: {userData?.email || "N/A"}</p>
+          <p className="text-gray-700 dark:text-gray-300">Target Weight: {targetWeight} lb</p>
+          <p className="text-gray-700 dark:text-gray-300">Target Body Fat: {targetBodyFat}%</p>
 
           {/* Editable Target Weight */}
           <div className="mt-4">

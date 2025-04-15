@@ -1,6 +1,8 @@
 import React from "react";
 import { Line } from "react-chartjs-2";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 // Import Chart.js components
 function LineChart({ weightData, weightLabels }) {
   return (
